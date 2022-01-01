@@ -4,6 +4,7 @@ import { Request, Response, NextFunction, Router } from 'express';
 import { SessionData } from 'express-session';
 import { StatusCodes } from 'http-status-codes';
 import { Repository } from 'typeorm';
+import Article from './articles.entity';
 import { Extract, Sign } from './sign';
 import User from './user.entity';
 
@@ -26,6 +27,7 @@ export class TokenMiddleWare implements NestMiddleware {
 export class AppService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Article) private articleRepository: Repository<Article>,
   ) {
     this.init();
   }
@@ -57,13 +59,23 @@ export class AppService {
     return await this.userRepository.findOne({ id: id });
   }
 
-
-
   async login(username: string, password: string) {
     const user = await this.userRepository.findOne({ username, password })
     if (user === undefined) {
       throw new HttpException("用户名或密码错误", StatusCodes.NOT_FOUND)
     }
     return { user, token: Sign(user, "k-on!") };
+  }
+
+  async getArticles(page: number, pageSize: number) {
+    return await this.articleRepository.findAndCount({ skip: pageSize * (page - 1), take: pageSize, relations: ["user"] })
+  }
+
+  async getArticle(id: number) {
+    return await this.articleRepository.findOne(id, { select: ["content","created","id","title","updated"],relations:["user"] })
+  }
+  async createOrUpdateArticle(user: User, article: Partial<Article>) {
+    article.user = user;
+    return await this.articleRepository.save(article)
   }
 }
