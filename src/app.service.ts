@@ -1,11 +1,27 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Request, Router } from 'express';
+import { Request, Response, NextFunction, Router } from 'express';
+import { SessionData } from 'express-session';
 import { StatusCodes } from 'http-status-codes';
 import { Repository } from 'typeorm';
-import { Sign } from './sign';
+import { Extract, Sign } from './sign';
 import User from './user.entity';
 
+@Injectable()
+export class TokenMiddleWare implements NestMiddleware {
+  constructor() { }
+  private salt: string = "k-on!"
+  use(req: Request, res: Response, next: NextFunction) {
+    const token = req.headers["x-auth-token"]
+    if (typeof token === "string") {
+      const payload = Extract(token, this.salt)
+      if (payload && typeof payload["id"] === 'number') {
+        (req.session as Partial<SessionData>).userId = payload["id"]
+      }
+    }
+    next()
+  }
+}
 @Injectable()
 export class AppService {
   constructor(

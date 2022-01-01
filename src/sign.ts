@@ -11,7 +11,7 @@ function sign(obj: Object, salt: string): string {
             }
             keys.sort()
             for (const k of keys) {
-                values.push(this.sign(obj[k], salt))
+                values.push(sign(obj[k], salt))
             }
             s = `{${keys.join("$")}:${values.join("$")}}`
             break;
@@ -20,21 +20,23 @@ function sign(obj: Object, salt: string): string {
             s = JSON.stringify(obj)
             break;
     }
-    return createHmac("sha256", salt).update(s).digest("base64url")
+    const sig = createHmac("sha256", salt).update(s).digest("base64url")
+    return sig
 }
 
 // ucs-2 string to base64 encoded ascii
 function utoa(str) {
-    return window.btoa(unescape(encodeURIComponent(str)));
+    return btoa(unescape(encodeURIComponent(str)));
 }
 // base64 encoded ascii to ucs-2 string
 function atou(str) {
-    return decodeURIComponent(escape(window.atob(str)));
+    return decodeURIComponent(escape(atob(str)));
 }
 
 function Sign(obj: Object, salt: string): string {
+    obj = JSON.parse(JSON.stringify(obj))
     const time = Date.now().toString()
-    return `${utoa(JSON.stringify(obj))}:${sign({ obj, time }, salt)}`
+    return `${utoa(JSON.stringify({ obj, time }))}:${sign({ obj, time }, salt)}`
 }
 
 function Extract<T>(signStr: string, salt: string, expire: number = 0): T | undefined {
@@ -44,7 +46,9 @@ function Extract<T>(signStr: string, salt: string, expire: number = 0): T | unde
     }
     try {
         const payload = JSON.parse(atou(part[0]))
-        if (sign(payload, salt) != part[1]) {
+        const newSign = sign(payload, salt)
+        if (newSign != part[1]) {
+            console.log(newSign)
             return undefined
         }
         if (typeof payload.time !== "string") {

@@ -3,7 +3,6 @@ import { AppService } from './app.service';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { SessionData } from 'express-session';
-import { json } from 'stream/consumers';
 
 @Controller()
 export class AppController {
@@ -15,9 +14,9 @@ export class AppController {
   }
 
   @Get('/user/self')
-  getUserSelf(@Session() session: Partial<SessionData>, @Res() resp: Response) {
+  async getUserSelf(@Session() session: Partial<SessionData>) {
     if (session.userId !== undefined) {
-      return this.appService.getUser(session.userId);
+      return await this.appService.getUser(session.userId);
     } else {
       throw new HttpException("Know yourself!", StatusCodes.UNAUTHORIZED)
     }
@@ -31,7 +30,7 @@ export class AppController {
 
   @Post("/login")
   async login(@Session() session: Partial<SessionData>, @Body() body: { username, password }) {
-    if (!((typeof body.username) == "string") || !((typeof body.password) === "string")) {
+    if (((typeof body.username) !== "string") || ((typeof body.password) !== "string")) {
       throw new HttpException("?", StatusCodes.BAD_REQUEST)
     }
     const res = await this.appService.login(body.username, body.password)
