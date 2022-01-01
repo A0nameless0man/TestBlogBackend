@@ -30,11 +30,13 @@ export class AppController {
   }
 
   @Post("/login")
-  login(@Body() body: { username, password }) {
+  async login(@Session() session: Partial<SessionData>, @Body() body: { username, password }) {
     if (!((typeof body.username) == "string") || !((typeof body.password) === "string")) {
       throw new HttpException("?", StatusCodes.BAD_REQUEST)
     }
-    return this.appService.login(body.username,body.password)
+    const res = await this.appService.login(body.username, body.password)
+    session.userId = res.user.id
+    return res
   }
 
 }
