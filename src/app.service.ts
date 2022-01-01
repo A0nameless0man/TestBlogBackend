@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Request as ExpressRequest, Router } from 'express';
+import { Request, Router } from 'express';
 import { Repository } from 'typeorm';
 import User from './user.entity';
 
@@ -11,7 +11,7 @@ export class AppService {
   ) {
     this.init();
   }
-  getHello(req: ExpressRequest) {
+  getHello(req: Request) {
     const router = req.app._router as Router;
     return {
       routes: router.stack
