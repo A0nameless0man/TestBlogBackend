@@ -15,7 +15,8 @@ function sign(obj: Object, salt: string): string {
             }
             s = `{${keys.join("$")}:${values.join("$")}}`
             break;
-
+        case "undefined":
+            s = "undefined"
         default:
             s = JSON.stringify(obj)
             break;
