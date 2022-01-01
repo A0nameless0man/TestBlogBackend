@@ -10,4 +10,10 @@ export class AppController {
   getHello(@Request() req: ExpressRequest) {
     return this.appService.getHello(req);
   }
+
+  @Get("/user/self")
+  getUserSelf(@Request() req: ExpressRequest)
+  {
+    
+  }
 }
