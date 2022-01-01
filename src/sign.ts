@@ -17,6 +17,7 @@ function sign(obj: Object, salt: string): string {
             break;
         case "undefined":
             s = "undefined"
+            break;
         default:
             s = JSON.stringify(obj)
             break;
