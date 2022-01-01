@@ -1,9 +1,12 @@
-import { Body, Controller, Get, HttpException, Logger, Param, Post, Req, Res, Session } from '@nestjs/common';
+import { Body, Controller, createParamDecorator, ExecutionContext, Get, HttpException, Logger, Param, Post, Req, Res, Session } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { SessionData } from 'express-session';
 
+const UserId = createParamDecorator((_, ctx: ExecutionContext) => {
+  return ((ctx.switchToHttp().getRequest() as Request).session as Partial<SessionData>).userId
+})
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) { }
@@ -14,9 +17,9 @@ export class AppController {
   }
 
   @Get('/user/self')
-  async getUserSelf(@Session() session: Partial<SessionData>) {
-    if (session.userId !== undefined) {
-      return await this.appService.getUser(session.userId);
+  async getUserSelf(@UserId() id: number | undefined) {
+    if (id !== undefined) {
+      return await this.appService.getUser(id);
     } else {
       throw new HttpException("Know yourself!", StatusCodes.UNAUTHORIZED)
     }
