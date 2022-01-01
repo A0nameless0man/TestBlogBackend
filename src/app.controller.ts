@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Res, Session } from '@nestjs/common';
+import { Controller, Get, Param, Req, Res, Session } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Request, Response } from 'express';
 import { SessionData } from 'express-session';
@@ -11,6 +11,12 @@ export class AppController {
   @Get()
   getHello(@Req() req: Request) {
     return this.appService.getHello(req);
+  }
+
+  @Get("/user/:id")
+  getUser(@Param('id') idStr: string) {
+    const id = parseInt(idStr)
+    return this.appService.getUser(id)
   }
 
   @Get('/user/self')
