@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Req, Res, Session } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Request, Response } from 'express';
-import { SessionData } from 'express-session';
 import { StatusCodes } from 'http-status-codes';
+import { SessionData } from 'express-session';
 
 @Controller()
 export class AppController {
