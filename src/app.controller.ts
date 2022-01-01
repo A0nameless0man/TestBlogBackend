@@ -39,4 +39,10 @@ export class AppController {
     return res
   }
 
+  @Post("/logout")
+  async logout(@Session() session: Partial<SessionData>) {
+    session.userId = undefined
+    return { msg: "ok" }
+  }
+
 }
