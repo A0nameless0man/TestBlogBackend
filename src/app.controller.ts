@@ -1,8 +1,9 @@
-import { Controller, Get, HttpException, Logger, Param, Req, Res, Session } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, Logger, Param, Post, Req, Res, Session } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { SessionData } from 'express-session';
+import { json } from 'stream/consumers';
 
 @Controller()
 export class AppController {
@@ -18,7 +19,7 @@ export class AppController {
     if (session.userId !== undefined) {
       return this.appService.getUser(session.userId);
     } else {
-      throw new HttpException("Know yourself!",StatusCodes.UNAUTHORIZED)
+      throw new HttpException("Know yourself!", StatusCodes.UNAUTHORIZED)
     }
   }
 
@@ -26,6 +27,14 @@ export class AppController {
   getUser(@Param('id') idStr: string) {
     const id = parseInt(idStr)
     return this.appService.getUser(id)
+  }
+
+  @Post("/login")
+  login(@Body() body: { username, password }) {
+    if (!((typeof body.username) == "string") || !((typeof body.password) === "string")) {
+      throw new HttpException("?", StatusCodes.BAD_REQUEST)
+    }
+    return this.appService.login(body.username,body.password)
   }
 
 }
