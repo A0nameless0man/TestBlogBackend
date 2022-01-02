@@ -1,8 +1,9 @@
-import { BadRequestException, Body, Controller, createParamDecorator, ExecutionContext, Get, HttpException, Logger, Param, Post, Req, Res, Session, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, createParamDecorator, ExecutionContext, Get, HttpException, Logger, NotFoundException, Param, Post, Req, Res, Session, UnauthorizedException } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { SessionData } from 'express-session';
+import { NotFoundError } from 'rxjs';
 
 const UserId = createParamDecorator((_, ctx: ExecutionContext) => {
   return ((ctx.switchToHttp().getRequest() as Request).session as Partial<SessionData>).userId
@@ -95,12 +96,22 @@ export class AppController {
   }
 
   @Post("/article/:id")
-  async updateArticle(@UserId() userId: number | undefined, @Body() body: { title, content }) {
+  async updateArticle(@IntParam("id") id: number, @UserId() userId: number | undefined, @Body() body: { title, content }) {
     if (userId === undefined) {
       throw new UnauthorizedException("Tell me your name")
     }
     if (((typeof body.title) !== "string") || ((typeof body.content) !== "string")) {
       throw new HttpException("?", StatusCodes.BAD_REQUEST)
     }
+    const art = await this.appService.getArticle(id);
+    if (art === undefined) {
+      throw new NotFoundException()
+    }
+    if (art.user.id !== userId) {
+      throw new UnauthorizedException("Who you think you are?")
+    }
+    art.content = body.content
+    art.title = body.title
+    return await this.appService.createOrUpdateArticle(await this.appService.getUser(userId), art)
   }
 }
